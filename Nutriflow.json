@@ -1,0 +1,175 @@
+{
+  "name": "Nutriflow",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        176
+      ],
+      "id": "f7d204ab-dd77-4658-b3a2-74fb5ab2b7bd",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "TPVKYmaZDPpNZ3P3",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze the user’s Indian health profile (weight, height, PCOS symptoms, menstrual cycle, budget, and living situation) and create a 30-day personalized Indian meal plan that supports:\n\nPCOS management & hormone balance\n\nAffordable Indian grocery options\n\nFlexible prep for hostel, flat, or solo cooking setups\n\nEach day should include breakfast, lunch, dinner, and snacks with Indian dishes and a weekly grocery list.\n",
+        "hasOutputParser": true,
+        "options": {
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        -32
+      ],
+      "id": "c9408f47-d423-46a9-bb0c-8cf080b16c53",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"status\": \"success\",\n  \"meal_plan\": {\n    \"goal\": \"Balanced Indian PCOS-friendly meal plan\",\n    \"duration\": \"30 days\",\n    \"weekly_summary\": [\n      {\n        \"week\": 1,\n        \"focus\": \"Detox and regulate hormones\",\n        \"avg_calories\": 1750\n      },\n      {\n        \"week\": 2,\n        \"focus\": \"Increase plant protein and fiber\",\n        \"avg_calories\": 1800\n      }\n    ],\n    \"grocery_list\": [\n      \"Oats\",\n      \"Moong dal\",\n      \"Spinach\",\n      \"Brown rice\",\n      \"Paneer\",\n      \"Cucumber\",\n      \"Curd\",\n      \"Mixed nuts\",\n      \"Masalas (turmeric, jeera, coriander)\"\n    ]\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        176
+      ],
+      "id": "e63c0d2a-8d19-4a05-990f-061e6292a5b3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nutriflow",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        -32
+      ],
+      "id": "31a4809a-1d69-4dc0-9ab3-baa4bcaf7bf2",
+      "name": "Webhook",
+      "webhookId": "02007d5c-158b-4802-a163-63aa466d44fc"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.meal_plan }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "0e9265ee-d0fe-48b7-956b-2af8aca66ee6",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: $json.output\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -16
+      ],
+      "id": "239f07a4-76a5-4244-a9d4-74a8ebb5783e",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f00c2b5c-67fa-4507-993d-8f6eb69a079a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "34c9aad3f0ee73c359b4cd9ccf1507658a0543fdcec0b48ccc26d7ca12cee7a0"
+  },
+  "id": "nmySvyeMywBjJ1a0",
+  "tags": []
+}
